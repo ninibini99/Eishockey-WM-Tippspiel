@@ -1,5 +1,5 @@
 match_id,group,team_1,team_2,actual_goal_1,actual_goal_2
-A1,A,DE,FIN,2,4
+A1,A,DE,FIN,,
 A2,A,SUI,USA,,
 A3,A,AUT,GB,,
 A4,A,FIN,HUN,,
@@ -27,7 +27,7 @@ A25,A,DE,GB,,
 A26,A,HUN,LAT,,
 A27,A,AUT,USA,,
 A28,A,SUI,FIN,,
-B1,B,CAN,SWE,4,2
+B1,B,CAN,SWE,,
 B2,B,CZE,DEN,,
 B3,B,NOR,SVK,,
 B4,B,CAN,ITA,,
