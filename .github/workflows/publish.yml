@@ -31,14 +31,14 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+            - name: Install system dependencies for images
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagick++-dev
+
       - name: Install R packages
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::tidyverse
-            any::lubridate
-            any::knitr
-            any:: ggimage
+        run: |
+          Rscript -e 'install.packages(c("tidyverse", "lubridate", "knitr", "ggimage", "magick"), repos = "https://cloud.r-project.org")'
 
       - name: Render Quarto site
         run: quarto render index.qmd
