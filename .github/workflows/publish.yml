@@ -32,8 +32,12 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install R packages
-        run: |
-          Rscript -e 'install.packages(c("tidyverse", "lubridate", "knitr", "rmarkdown", "scales"), repos = "https://cloud.r-project.org")'
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::tidyverse
+            any::lubridate
+            any::knitr
 
       - name: Render Quarto site
         run: quarto render index.qmd
