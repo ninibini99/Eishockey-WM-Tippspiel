@@ -38,6 +38,7 @@ jobs:
             any::tidyverse
             any::lubridate
             any::knitr
+            any:: ggimage
 
       - name: Render Quarto site
         run: quarto render index.qmd
