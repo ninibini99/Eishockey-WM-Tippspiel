@@ -254,16 +254,13 @@ knitr::kable(
 
 ```{r}
 #| echo: false
-#| fig-width: 8
-#| fig-height: 5
+#| fig-width: 10
+#| fig-height: 6
 
 points_over_time <- scored |>
   filter(match_finished) |>
-  mutate(
-    match_date = as_date(match_start, tz = site_timezone)
-  ) |>
   arrange(match_start, match_id) |>
-  group_by(player_name, match_start, match_date, match_id) |>
+  group_by(player_name, match_start, match_id) |>
   summarise(
     points_this_match = sum(points, na.rm = TRUE),
     .groups = "drop"
@@ -275,49 +272,42 @@ points_over_time <- scored |>
   ) |>
   ungroup()
 
-line_labels <- points_over_time |>
-  group_by(player_name) |>
-  slice_max(match_date, n = 1, with_ties = FALSE) |>
-  ungroup()
-
 if (nrow(points_over_time) > 0) {
   ggplot(
     points_over_time,
     aes(
-      x = match_date,
+      x = match_start,
       y = total_points,
       color = player_name,
       group = player_name
     )
   ) +
-    geom_line(linewidth = 1.3) +
-    geom_point(size = 2.8) +
-    geom_text(
-      data = line_labels,
-      aes(label = player_name),
-      hjust = -0.1,
-      size = 4.5,
-      show.legend = FALSE
-    ) +
+    geom_step(linewidth = 1.2, direction = "hv") +
+    geom_point(size = 2.4) +
     labs(
       x = NULL,
       y = "Total points",
-      title = "Points race over time"
+      title = "🏆 Points race over time",
+      color = "Player"
     ) +
-    scale_x_date(date_labels = "%d %b") +
-    scale_y_continuous(expand = expansion(mult = c(0.05, 0.18))) +
-    coord_cartesian(clip = "off") +
+    scale_x_datetime(
+      date_labels = "%d %b\n%H:%M",
+      date_breaks = "12 hours"
+    ) +
+    scale_y_continuous(
+      breaks = scales::pretty_breaks(),
+      expand = expansion(mult = c(0.05, 0.12))
+    ) +
     theme_minimal(base_size = 14) +
     theme(
       plot.title = element_text(face = "bold", size = 20),
-      legend.position = "none",
+      legend.position = "bottom",
+      legend.title = element_blank(),
       panel.grid.minor = element_blank(),
-      plot.margin = margin(10, 90, 10, 10)
+      axis.text.x = element_text(angle = 0, hjust = 0.5)
     )
 }
 ```
-
-# Match-by-match points
 
 # Match-by-match points
 
