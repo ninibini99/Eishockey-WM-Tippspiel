@@ -91,13 +91,26 @@ scored <- guesses |>
     pred_diff = pred_goal_1 - pred_goal_2,
     actual_diff = actual_goal_1 - actual_goal_2,
 
+    points_winner = if_else(group == "Q", 2L, 1L),
+    points_diff   = if_else(group == "Q", 4L, 2L),
+    points_exact  = if_else(group == "Q", 6L, 3L),
+
+    points_type = case_when(
+      !match_finished ~ NA_character_,
+      is.na(pred_goal_1) | is.na(pred_goal_2) ~ "none",
+      pred_goal_1 == actual_goal_1 & pred_goal_2 == actual_goal_2 ~ "exact",
+      pred_diff == actual_diff ~ "diff",
+      pred_outcome == actual_outcome ~ "winner",
+      TRUE ~ "none"
+    ),
+
     points = case_when(
-  !match_finished ~ NA_integer_,
-  pred_goal_1 == actual_goal_1 & pred_goal_2 == actual_goal_2 ~ 3L,
-  pred_diff == actual_diff ~ 2L,
-  pred_outcome == actual_outcome ~ 1L,
-  TRUE ~ 0L
-)
+      !match_finished ~ NA_integer_,
+      points_type == "exact" ~ points_exact,
+      points_type == "diff" ~ points_diff,
+      points_type == "winner" ~ points_winner,
+      TRUE ~ 0L
+    )
   )
 ```
 
@@ -191,9 +204,9 @@ leaderboard <- scored |>
   summarise(
     total_points = sum(points, na.rm = TRUE),
     points_today = sum(if_else(match_date == today_date, points, 0L), na.rm = TRUE),
-    exact_scores = sum(points == 3, na.rm = TRUE),
-    correct_goal_diff = sum(points == 2, na.rm = TRUE),
-    correct_winner = sum(points == 1, na.rm = TRUE),
+    exact_scores = sum(points_type == "exact", na.rm = TRUE),
+    correct_goal_diff = sum(points_type == "diff", na.rm = TRUE),
+    correct_winner = sum(points_type == "winner", na.rm = TRUE),,
     matches_scored = n(),
     .groups = "drop"
   ) |>
