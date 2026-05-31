@@ -101,3 +101,35 @@ tbody tr:hover {
   font-weight: 600;
   margin-bottom: 1rem;
 }
+
+.bonus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.bonus-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #fff;
+  font-size: 0.85rem;
+}
+
+.bonus-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.bonus-card table {
+  width: 100%;
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
+.bonus-card th,
+.bonus-card td {
+  padding: 0.25rem 0.4rem;
+}
