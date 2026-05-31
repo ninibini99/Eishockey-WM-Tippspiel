@@ -48,7 +48,11 @@ team_label <- function(team_code) {
   ifelse(is.na(flag), team_code, paste(flag, team_code))
 }
 
-guesses <- read_csv("data/guesses.csv", show_col_types = FALSE) |>
+guesses <- read_csv(
+  "data/guesses.csv",
+  col_types = cols(.default = col_character()),
+  show_col_types = FALSE
+) |>
   mutate(
     Date = dmy(Date),
     Time = format(strptime(Time, format = "%H:%M"), "%H:%M"),
@@ -57,8 +61,15 @@ guesses <- read_csv("data/guesses.csv", show_col_types = FALSE) |>
       tz = site_timezone
     ),
     match_date = as_date(match_start, tz = site_timezone),
-    pred_goal_1 = as.integer(pred_goal_1),
-    pred_goal_2 = as.integer(pred_goal_2)
+
+    # Keep the original guess values as text.
+    # This is needed for bonus questions like "SUI" or "CAN".
+    guess_1_raw = pred_goal_1,
+    guess_2_raw = pred_goal_2,
+
+    # Convert only normal match guesses to numbers.
+    pred_goal_1 = suppressWarnings(as.integer(pred_goal_1)),
+    pred_goal_2 = suppressWarnings(as.integer(pred_goal_2))
   )
 
 results <- read_csv("data/results.csv", show_col_types = FALSE) |>
@@ -67,7 +78,10 @@ results <- read_csv("data/results.csv", show_col_types = FALSE) |>
     actual_goal_2 = as.integer(actual_goal_2)
   )
 
+match_groups <- c("A", "B", "Q", "S", "F")
+
 scored <- guesses |>
+  filter(group %in% match_groups) |>
   left_join(
     results |>
       select(group, match_id, actual_goal_1, actual_goal_2),
@@ -141,6 +155,7 @@ now_time <- now(tzone = site_timezone)
 today_date <- today(tzone = site_timezone)
 
 todays_games <- guesses |>
+  filter(group %in% match_groups) |>
   mutate(
     match_date = as_date(match_start, tz = site_timezone)
   ) |>
@@ -204,6 +219,127 @@ if (nrow(todays_games) == 0) {
   }
 }
 ```
+# Bonus guesses
+
+```{r}
+#| echo: false
+#| results: asis
+
+bonus_answers <- read_csv(
+  "data/bonus_answers.csv",
+  col_types = cols(.default = col_character()),
+  show_col_types = FALSE
+) |>
+  mutate(
+    correct_number = suppressWarnings(as.numeric(correct_number))
+  )
+
+bonus_guesses <- guesses |>
+  filter(group %in% c("CA", "CG")) |>
+  mutate(
+    question = coalesce(team_1, match_id),
+    guess = coalesce(guess_1_raw, guess_2_raw),
+    guess = na_if(guess, "")
+  ) |>
+  left_join(
+    bonus_answers,
+    by = c("group", "match_id")
+  ) |>
+  mutate(
+    question = coalesce(question.y, question.x),
+    guess_number = suppressWarnings(as.numeric(guess))
+  )
+
+bonus_ca <- bonus_guesses |>
+  filter(group == "CA") |>
+  mutate(
+    points_awarded = case_when(
+      is.na(correct_answer) | correct_answer == "" ~ NA_integer_,
+      str_to_upper(guess) == str_to_upper(correct_answer) ~ 8L,
+      TRUE ~ 0L
+    )
+  )
+
+bonus_cg <- bonus_guesses |>
+  filter(group == "CG") |>
+  group_by(match_id) |>
+  mutate(
+    distance = abs(guess_number - correct_number),
+    closest_rank = if_else(
+      is.na(correct_number) | is.na(guess_number),
+      NA_integer_,
+      dense_rank(distance)
+    ),
+    points_awarded = case_when(
+      is.na(closest_rank) ~ NA_integer_,
+      closest_rank == 1 ~ 8L,
+      closest_rank == 2 ~ 5L,
+      closest_rank == 3 ~ 3L,
+      TRUE ~ 0L
+    )
+  ) |>
+  ungroup()
+
+bonus_display <- bind_rows(bonus_ca, bonus_cg)
+
+if (nrow(bonus_display) == 0) {
+  cat("No bonus guesses available.")
+} else {
+
+  bonus_questions <- bonus_display |>
+    distinct(group, match_id, question) |>
+    arrange(group, match_id)
+
+  cat('<div class="bonus-grid">\n')
+
+  for (i in seq_len(nrow(bonus_questions))) {
+
+    this_question <- bonus_questions[i, ]
+
+    this_table <- bonus_display |>
+      filter(
+        group == this_question$group,
+        match_id == this_question$match_id
+      ) |>
+      mutate(
+        `Points awarded` = if_else(
+          is.na(points_awarded),
+          "—",
+          as.character(points_awarded)
+        )
+      ) |>
+      select(
+        Player = player_name,
+        Guess = guess,
+        `Points awarded`
+      ) |>
+      arrange(desc(as.integer(if_else(`Points awarded` == "—", "0", `Points awarded`))), Player)
+
+    cat('<div class="bonus-card">\n')
+
+    cat(
+      '<div class="bonus-title">',
+      this_question$question,
+      '</div>\n',
+      sep = ""
+    )
+
+    print(
+      knitr::kable(
+        this_table,
+        format = "html",
+        align = c("l", "c", "c")
+      )
+    )
+
+    cat('</div>\n\n')
+  }
+
+  cat('</div>\n')
+}
+```
+
+
 
 # Leaderboard
 
