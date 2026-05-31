@@ -1,5 +1,8 @@
 group,match_id,question,correct_answer,correct_number
 CA,CA1,World champion guess,,
-CA,CA2,Top scorer guess,McDavid,
-CG,CG1,Total goals in final,,7
-CG,CG2,Total tournament goals,,123
+CA,CA2,Switzerland Out Round,,
+CA,CA3,Topscorer Country,,
+CA,CA4,Most Penalty Minutes in QF,,
+CA,CA5,Most Goals in QF,,
+CG,CG1,Minute SUI Goal,,
+CG,CG2,Remaining Games Overtime,,
