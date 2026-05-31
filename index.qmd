@@ -359,7 +359,7 @@ leaderboard <- scored |>
     points_today = sum(if_else(match_date == today_date, points, 0L), na.rm = TRUE),
     exact_scores = sum(points_type == "exact", na.rm = TRUE),
     correct_goal_diff = sum(points_type == "diff", na.rm = TRUE),
-    correct_winner = sum(points_type == "winner", na.rm = TRUE),,
+    correct_winner = sum(points_type == "winner", na.rm = TRUE),
     matches_scored = n(),
     .groups = "drop"
   ) |>
