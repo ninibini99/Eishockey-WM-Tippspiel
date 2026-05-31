@@ -91,9 +91,26 @@ scored <- guesses |>
     pred_diff = pred_goal_1 - pred_goal_2,
     actual_diff = actual_goal_1 - actual_goal_2,
 
-    points_winner = if_else(group == "Q", 2L, 1L),
-    points_diff   = if_else(group == "Q", 4L, 2L),
-    points_exact  = if_else(group == "Q", 6L, 3L),
+        points_winner = case_when(
+      group == "Q" ~ 2L,
+      group == "S" ~ 3L,
+      group == "F" ~ 4L,
+      TRUE ~ 1L
+    ),
+
+    points_diff = case_when(
+      group == "Q" ~ 4L,
+      group == "S" ~ 5L,
+      group == "F" ~ 6L,
+      TRUE ~ 2L
+    ),
+
+    points_exact = case_when(
+      group == "Q" ~ 6L,
+      group == "S" ~ 8L,
+      group == "F" ~ 10L,
+      TRUE ~ 3L
+    ),
 
     points_type = case_when(
       !match_finished ~ NA_character_,
